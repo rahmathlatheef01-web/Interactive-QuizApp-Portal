@@ -61,6 +61,7 @@ let timerId = null;
 // Initialize Category Selection Cards
 function initApp() {
   const catSection = document.getElementById('categorySection');
+  if (!catSection) return;
   catSection.innerHTML = '';
 
   CATEGORIES.forEach(cat => {
@@ -83,7 +84,7 @@ function initApp() {
   });
 }
 
-// Fisher-Yates Algorithmic Randomization (O(n) In-Place Shuffling)
+// Fisher-Yates Algorithmic Randomization
 function shuffleArray(arr) {
   const clone = [...arr];
   for (let i = clone.length - 1; i > 0; i--) {
@@ -121,7 +122,6 @@ function renderQuestions() {
     const qCard = document.createElement('div');
     qCard.className = 'q-card';
 
-    // HTML escape to prevent XSS / tag-rendering issues
     const safeQuestion = item.q.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
     let optionsHTML = '';
@@ -147,7 +147,6 @@ function renderQuestions() {
 function selectOption(qIdx, selectedValue) {
   userAnswers[qIdx] = selectedValue;
 
-  // Visual selection style
   const labels = document.querySelectorAll(`input[name="q_${qIdx}"]`);
   labels.forEach(input => {
     input.closest('.option-label').classList.toggle('selected', input.value === selectedValue);
@@ -201,7 +200,7 @@ function confirmSubmit() {
   finalizeQuiz(false);
 }
 
-// Evaluation Engine & Persistent High Score Synchronization
+// Evaluation Engine
 function finalizeQuiz(autoSubmitted = false) {
   clearInterval(timerId);
   let correct = 0;
@@ -222,7 +221,7 @@ function finalizeQuiz(autoSubmitted = false) {
   renderResultsView(correct, activeQs.length, attempted, percentage, autoSubmitted);
 }
 
-// Render Result & Pedagogical Review
+// Results & Review View
 function renderResultsView(correct, total, attempted, percentage, autoSubmitted) {
   document.getElementById('quizSection').classList.add('hidden');
   const resultSection = document.getElementById('resultSection');
@@ -260,6 +259,9 @@ function renderResultsView(correct, total, attempted, percentage, autoSubmitted)
   });
 }
 
-// Boot on load
-window.addEventListener('DOMContentLoaded', initApp);
-                         
+// Ensure execution on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+    }
