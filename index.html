@@ -4,11 +4,175 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>QuizApp Portal - Interactive Assessment Platform</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #0b0f19;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .glass-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.92);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand-title { font-size: 1.25rem; font-weight: 700; }
+    .brand-title span { color: #6366f1; }
+    .quiz-stats { display: flex; gap: 12px; }
+    .badge {
+      background: #1e293b;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: 1px solid #334155;
+    }
+    .badge.timer { font-family: monospace; }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 5px;
+      background: #1e293b;
+      position: sticky;
+      top: 58px;
+      z-index: 40;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #4f46e5, #06b6d4);
+      transition: width 0.3s ease;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 24px 0;
+    }
+    .cat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cat-card h3 { margin-top: 0; color: #60a5fa; }
+    .cat-card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.4; }
+    .card-footer {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .best-score { font-size: 0.85rem; color: #f59e0b; font-weight: 600; }
+    .q-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      background: #fff;
+      color: #1e293b;
+      transition: 0.25s ease;
+    }
+    .option-label:hover { border-color: #6366f1; background: #f8fafc; }
+    .option-label.selected {
+      border-color: #4f46e5;
+      background: #eef2ff;
+      color: #312e81;
+      font-weight: 600;
+      box-shadow: 0 0 0 1px #4f46e5;
+    }
+    button {
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+    }
+    .btn-primary, #submitBtn {
+      background: #4f46e5;
+      color: #fff;
+    }
+    .btn-primary:hover, #submitBtn:hover { background: #4338ca; }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+    .modal-box {
+      background: #1e293b;
+      padding: 20px 24px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      max-width: 400px;
+      width: 90%;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 20px;
+    }
+    .btn-confirm { background: #10b981; color: #fff; }
+    .timer-warning {
+      animation: pulse 1s infinite ease-in-out;
+      background: #ef4444 !important;
+      color: #fff !important;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+    .glass-card {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 24px;
+      border: 1px solid #334155;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .review-item {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .hidden { display: none !important; }
+  </style>
 </head>
 <body>
 
-  <!-- Sticky Navigation Header with Live Statistics -->
   <header class="glass-header">
     <div class="brand-title">QuizApp <span>Portal</span></div>
     <div class="quiz-stats" id="quizStats">
@@ -17,13 +181,288 @@
     </div>
   </header>
 
-  <!-- Synchronized Progress Bar -->
   <div class="progress-bar-wrap" id="progressBarWrap">
     <div class="progress-bar" id="progressBar"></div>
   </div>
 
-  <!-- Main Application Views -->
   <main class="container">
-    <!-- Category Selection Grid -->
+    <section id="categorySection" class="category-grid"></section>
 
-    
+    <section id="quizSection" class="hidden">
+      <form id="quizForm">
+        <div id="questionswrapper"></div>
+        <button type="button" id="submitBtn" onclick="handlePreSubmission()">Submit Quiz</button>
+      </form>
+    </section>
+
+    <section id="resultSection" class="hidden">
+      <div id="resultCard" class="glass-card"></div>
+      <div id="reviewContainer"></div>
+    </section>
+  </main>
+
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h3>Confirm Submission</h3>
+      <p id="modalStatusText">You have answered 0 of 5 questions.</p>
+      <div class="modal-actions">
+        <button type="button" onclick="closeModal()">Continue Quiz</button>
+        <button type="button" class="btn-confirm" onclick="confirmSubmit()">Confirm & Finish</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const QUESTION_BANK = {
+      html: [
+        {
+          id: 1,
+          q: "Which HTML tag defines an internal style sheet?",
+          opts: ["<css>", "<script>", "<style>", "<sheet>"],
+          ans: "<style>",
+          exp: "<style> tag encapsulates CSS declarations within an HTML document."
+        },
+        {
+          id: 2,
+          q: "Which attribute specifies alternative text for images?",
+          opts: ["title", "alt", "src", "desc"],
+          ans: "alt",
+          exp: "alt provides accessible text descriptions for assistive technology."
+        }
+      ],
+      css: [
+        {
+          id: 3,
+          q: "Which property controls element background fill?",
+          opts: ["color", "bgcolor", "background-color", "fill"],
+          ans: "background-color",
+          exp: "background-color sets the background canvas fill."
+        }
+      ],
+      javascript: [
+        {
+          id: 4,
+          q: "Which method converts a JSON string into a JavaScript object?",
+          opts: ["JSON.stringify()", "JSON.parse()", "JSON.toObject()", "JSON.build()"],
+          ans: "JSON.parse()",
+          exp: "JSON.parse() deserializes a standard JSON formatted string into a JavaScript object."
+        }
+      ],
+      architecture: [
+        {
+          id: 5,
+          q: "Which HTTP status code signifies a successful REST request?",
+          opts: ["200 OK", "404 Not Found", "500 Server Error", "301 Moved"],
+          ans: "200 OK",
+          exp: "200 OK indicates that the client request has succeeded."
+        }
+      ]
+    };
+
+    const CATEGORIES = [
+      { key: 'html', title: 'HTML5 Fundamentals', desc: 'Semantic tags, document structure, forms, and web markup.' },
+      { key: 'css', title: 'CSS3 Styling & Layouts', desc: 'Flexbox, CSS Grid, animations, and modern glassmorphism.' },
+      { key: 'javascript', title: 'JavaScript ES6+', desc: 'DOM manipulation, closures, events, promises, and array methods.' },
+      { key: 'architecture', title: 'Web Architecture', desc: 'HTTP protocols, client-server models, Web APIs, and caching.' }
+    ];
+
+    let currentCat = null;
+    let activeQs = [];
+    let userAnswers = {};
+    let timeRemaining = 300;
+    let timerId = null;
+
+    function initApp() {
+      const catSection = document.getElementById('categorySection');
+      if (!catSection) return;
+      catSection.innerHTML = '';
+
+      CATEGORIES.forEach(cat => {
+        const bestKey = `quiz_best_${cat.key}`;
+        const bestScore = localStorage.getItem(bestKey) || 0;
+
+        const card = document.createElement('div');
+        card.className = 'cat-card';
+        card.innerHTML = `
+          <div>
+            <h3>${cat.title}</h3>
+            <p>${cat.desc}</p>
+          </div>
+          <div class="card-footer">
+            <span class="best-score">BEST SCORE: ${bestScore}%</span>
+            <button class="btn-primary" onclick="selectCategory('${cat.key}')">Start Quiz</button>
+          </div>
+        `;
+        catSection.appendChild(card);
+      });
+    }
+
+    function shuffleArray(arr) {
+      const clone = [...arr];
+      for (let i = clone.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [clone[i], clone[j]] = [clone[j], clone[i]];
+      }
+      return clone;
+    }
+
+    function selectCategory(key) {
+      currentCat = key;
+      userAnswers = {};
+      timeRemaining = 300;
+      activeQs = shuffleArray(QUESTION_BANK[key] || QUESTION_BANK.html).map(item => ({
+        ...item,
+        opts: shuffleArray(item.opts)
+      }));
+
+      document.getElementById('categorySection').classList.add('hidden');
+      document.getElementById('resultSection').classList.add('hidden');
+      document.getElementById('quizSection').classList.remove('hidden');
+
+      updateProgress();
+      renderQuestions();
+      startCountdown();
+    }
+
+    function renderQuestions() {
+      const wrapper = document.getElementById('questionswrapper');
+      wrapper.innerHTML = '';
+
+      activeQs.forEach((item, qIdx) => {
+        const qCard = document.createElement('div');
+        qCard.className = 'q-card';
+
+        const safeQuestion = item.q.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+        let optionsHTML = '';
+        item.opts.forEach((opt) => {
+          const safeOpt = opt.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          optionsHTML += `
+            <label class="option-label" id="label_${qIdx}_${opt}">
+              <input type="radio" name="q_${qIdx}" value="${opt}" onchange="selectOption(${qIdx}, '${opt}')">
+              <span>${safeOpt}</span>
+            </label>
+          `;
+        });
+
+        qCard.innerHTML = `
+          <h4>Q${qIdx + 1}: ${safeQuestion}</h4>
+          <div class="options-list">${optionsHTML}</div>
+        `;
+        wrapper.appendChild(qCard);
+      });
+    }
+
+    function selectOption(qIdx, selectedValue) {
+      userAnswers[qIdx] = selectedValue;
+      const labels = document.querySelectorAll(`input[name="q_${qIdx}"]`);
+      labels.forEach(input => {
+        input.closest('.option-label').classList.toggle('selected', input.value === selectedValue);
+      });
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const answeredCount = Object.keys(userAnswers).length;
+      const total = activeQs.length;
+      document.getElementById('answeredCount').textContent = `${answeredCount}/${total}`;
+      const pct = total > 0 ? (answeredCount / total) * 100 : 0;
+      document.getElementById('progressBar').style.width = `${pct}%`;
+    }
+
+    function startCountdown() {
+      clearInterval(timerId);
+      const badge = document.getElementById('timerBadge');
+      badge.classList.remove('timer-warning');
+
+      timerId = setInterval(() => {
+        timeRemaining--;
+        const min = String(Math.floor(timeRemaining / 60)).padStart(2, '0');
+        const sec = String(timeRemaining % 60).padStart(2, '0');
+        document.getElementById('timerText').textContent = `${min}:${sec}`;
+
+        if (timeRemaining <= 60) badge.classList.add('timer-warning');
+        if (timeRemaining <= 0) {
+          clearInterval(timerId);
+          finalizeQuiz(true);
+        }
+      }, 1000);
+    }
+
+    function handlePreSubmission() {
+      const count = Object.keys(userAnswers).length;
+      document.getElementById('modalStatusText').textContent = `You have answered ${count} of ${activeQs.length} questions.`;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('confirmModal').classList.add('hidden');
+    }
+
+    function confirmSubmit() {
+      closeModal();
+      finalizeQuiz(false);
+    }
+
+    function finalizeQuiz(autoSubmitted = false) {
+      clearInterval(timerId);
+      let correct = 0;
+      const attempted = Object.keys(userAnswers).length;
+
+      activeQs.forEach((q, idx) => {
+        if (userAnswers[idx] === q.ans) correct++;
+      });
+
+      const percentage = Math.round((correct / activeQs.length) * 100);
+      const bestKey = `quiz_best_${currentCat}`;
+      const previousBest = parseInt(localStorage.getItem(bestKey) || '0', 10);
+
+      if (percentage > previousBest) {
+        localStorage.setItem(bestKey, percentage);
+      }
+
+      renderResultsView(correct, activeQs.length, attempted, percentage, autoSubmitted);
+    }
+
+    function renderResultsView(correct, total, attempted, percentage, autoSubmitted) {
+      document.getElementById('quizSection').classList.add('hidden');
+      const resultSection = document.getElementById('resultSection');
+      resultSection.classList.remove('hidden');
+
+      const resultCard = document.getElementById('resultCard');
+      resultCard.innerHTML = `
+        <h2>${autoSubmitted ? 'Time Expired!' : 'Congratulations!'}</h2>
+        <div style="font-size: 2.5rem; font-weight: bold; margin: 12px 0;">${correct}/${total}</div>
+        <div class="badge" style="display:inline-block; margin-bottom: 16px;">
+          ${percentage >= 50 ? 'PASSED' : 'NEEDS IMPROVEMENT'} • ${percentage}%
+        </div>
+        <p>Attempted: ${attempted} | Accuracy: ${attempted > 0 ? Math.round((correct / attempted) * 100) : 0}%</p>
+        <button class="btn-primary" onclick="initApp(); document.getElementById('categorySection').classList.remove('hidden'); document.getElementById('resultSection').classList.add('hidden');">
+          Return to Categories
+        </button>
+      `;
+
+      const reviewContainer = document.getElementById('reviewContainer');
+      reviewContainer.innerHTML = '<h3>Answer Review</h3>';
+
+      activeQs.forEach((q, idx) => {
+        const isCorrect = userAnswers[idx] === q.ans;
+        const item = document.createElement('div');
+        item.className = 'review-item';
+        item.innerHTML = `
+          <p><strong>Q${idx + 1}: ${q.q.replace(/</g, "&lt;")}</strong></p>
+          <p style="color: ${isCorrect ? '#10b981' : '#ef4444'};">
+            Your Answer: ${userAnswers[idx] ? userAnswers[idx].replace(/</g, "&lt;") : '<em>Unattempted</em>'}
+          </p>
+          <p style="color: #60a5fa;">Correct Answer: ${q.ans.replace(/</g, "&lt;")}</p>
+          <small style="color: #94a3b8;">Explanation: ${q.exp}</small>
+        `;
+        reviewContainer.appendChild(item);
+      });
+    }
+
+    window.onload = initApp;
+  </script>
+</body>
+  </html>
+  
